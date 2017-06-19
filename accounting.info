@@ -1,0 +1,5 @@
+name = "Accounting"
+description = "IIT Bombay Accounting module for scilab.in website"
+package = IITB
+version = "7.1"
+core = "7.x"

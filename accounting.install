@@ -1,0 +1,16 @@
+<?php
+
+function accounting_install() {
+	drupal_install_schema('accounting');
+	variable_set('accounting_emails', '');
+	variable_set('accounting_from_email', '');
+}
+
+function accounting_uninstall() {
+	drupal_uninstall_schema('accounting');
+	variable_del('accounting_emails');
+	variable_del('accounting_from_email');
+}
+
+function accounting_schema() {
+}
