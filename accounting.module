@@ -2,7 +2,7 @@
 
 function accounting_menu() {
   $items = array();
-  $item['admin/settings/accounting'] = array(
+  $items['admin/settings/accounting'] = array(
     'title' => 'Accounting Settings',
     'description' => 'Settings for the accounting module.',
     'page callback' => 'drupal_get_form',
@@ -11,14 +11,14 @@ function accounting_menu() {
     ),
     'access arguments' => array(
       'administer accounting',
-    )
+    ),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'settings.inc',
   );
 
-  $item['accounting/manage_forms'] = array(
-    'title' => 'Manage Forms',
-    'description' => 'Manage forms sent by post.',
+  $items['accounting/manage_forms'] = array(
+    'title' => 'Manage Cheque Proposals',
+    'description' => 'Manage cheque proposal.',
     'page callback' => 'accounting_list_forms',
     'access arguments' => array(
       'accounting manage forms'
@@ -26,21 +26,21 @@ function accounting_menu() {
     'file' => 'manage_lm.inc'
   );
 
-  $item['accounting/manage_forms/lm'] = array(
+  $items['accounting/manage_forms/lm'] = array(
     'title' => 'Manage Lab Migration Forms',
     'description' => 'Manage lab migration forms sent by post.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'accounting_manage_lm_form'
-    ),
+    'page callback' => 'accounting_lm_list_forms',
+    // 'page arguments' => array(
+    //   'accounting_manage_lm_form'
+    // ),
     'access arguments' => array(
-      'manage forms'
+      'accounting manage forms',
     ),
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'file' => 'manage_lm.inc'
+    'file' => 'manage_lm.inc',
   );
 
-  $item['accounting/manage_forms/tbc'] = array(
+  $items['accounting/manage_forms/tbc'] = array(
     'title' => 'Manage Textbook Companion Forms',
     'description' => 'Manage textbook companion forms sent by post.',
     'page callback' => 'drupal_get_form',
@@ -57,11 +57,16 @@ function accounting_menu() {
   return $items;
 }
 
-function accounting_permissions() {
+function accounting_permission() {
   return array(
     'accounting manage forms' => array(
       'title' => t('accounting manage forms'),
       'restrict access' => TRUE,
-    )
-  )
+    ),
+
+    'administer accounting' => array(
+      'title' => t('administer accounting'), 
+      'restrict access' => TRUE,
+    ),
+  );
 }
