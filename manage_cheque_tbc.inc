@@ -393,8 +393,8 @@ function cheque_status_form($form_state, $proposal_id) {
     $query = db_select('textbook_companion_cheque');
     $query->fields('textbook_companion_cheque');
     $query->condition('proposal_id', $proposal_id);
-    $proposal_q1 = $query->execute();
-    $proposal_data1 = $proposal_q1->fetchObject();
+    $result = $query->execute();
+    $cheque_data = $result->fetchObject();
     if (!$proposal_data = $proposal_q->fetchObject()) {
         drupal_set_message(t('Invalid proposal selected. Please try again.'), 'error');
         drupal_goto('manage_proposal');
@@ -405,13 +405,13 @@ function cheque_status_form($form_state, $proposal_id) {
         '#default_value' => $proposal_id
     );
     /*$empty = db_query("SELECT * FROM {textbook_companion_proposal} WHERE id = ".$proposal_id);*/
-    $query = db_select('textbook_companion_proposal');
-    $query->fields('textbook_companion_proposal');
-    $query->condition('id', $proposal_id);
-    $empty = $query->execute();
-    if (!$empty) {
+    // $query = db_select('textbook_companion_proposal');
+    // $query->fields('textbook_companion_proposal');
+    // $query->condition('id', $proposal_id);
+    // $empty = $query->execute();
+    if (!$proposal_data) {
         /*$prop =db_query("insert into {textbook_companion_cheque} (proposal_id) values(%d)",$proposal_id);*/
-        $query = "insert into {textbook_companion_cheque} (proposal_id) values (:proposal_id)";
+        $query = "INSERT INTO {textbook_companion_cheque} (proposal_id) values (:proposal_id)";
         $args = array(
             ":proposal_id" => $proposal_id
         );
@@ -419,33 +419,32 @@ function cheque_status_form($form_state, $proposal_id) {
             'return' => Database::RETURN_INSERT_ID
         ));
     } //!$empty
-    $form['candidate_detail'] = array(
+    $form['candidate_details'] = array(
         '#type' => 'fieldset',
         '#title' => t('Candidate Details'),
-        '#collapsible' => TRUE,
+        '#collapsible' => FALSE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'candidate_detail'
-        )
+        '#prefix' => '<div id="candidate_details" style="width:50%;">',
+        '#suffix' => '</div>',
     );
-    $form['candidate_detail']['full_name'] = array(
+    $form['candidate_details']['full_name'] = array(
         '#type' => 'item',
         '#markup' => $proposal_data->full_name,
         '#title' => t('Contributor Name')
     );
-    $form['candidate_detail']['email'] = array(
+    $form['candidate_details']['email'] = array(
         '#type' => 'item',
         '#markup' => user_load($proposal_data->uid)->mail,
         '#title' => t('Email')
     );
-    $form['candidate_detail']['mobile'] = array(
+    $form['candidate_details']['mobile'] = array(
         '#type' => 'item',
         '#markup' => $proposal_data->mobile,
         '#title' => t('Mobile')
     );
-    $form['candidate_detail']['alt_mobile'] = array(
+    $form['candidate_details']['alt_mobile'] = array(
         '#type' => 'item',
-        '#markup' => $proposal_data1->alt_mobno,
+        '#markup' => $cheque_data->alt_mobno,
         '#title' => t('Alternate Mobile No.')
     );
     /*$form_q=db_query("SELECT * FROM {textbook_companion_paper} WHERE proposal_id =".$proposal_id);
@@ -461,9 +460,9 @@ function cheque_status_form($form_state, $proposal_id) {
     $query = db_select('textbook_companion_preference');
     $query->fields('textbook_companion_preference');
     $query->condition('proposal_id', $proposal_id);
-    $query->orderBy('pref_number', 'ASC');
-    $preference_q = $query->execute();
-    while ($preference_data = $preference_q->fetchObject())
+    $query->condition('approval_status', 1);
+    $result = $query->execute();
+    while ($preference_data = $result->fetchObject())
     {
         if ($preference_data->approval_status == 1)
             $preference_html .= '<li><strong>' . $preference_data->book . ' (Written by ' . $preference_data->author . ')  - Approved Book</strong></li>';
@@ -471,310 +470,315 @@ function cheque_status_form($form_state, $proposal_id) {
             $preference_html .= '<li>' . $preference_data->book . ' (Written by ' . $preference_data->author . ')</li>';
     } //$preference_data = $preference_q->fetchObject()
     $preference_html .= '</ul>';
-    $form['book_preference_f'] = array(
+    $form['book_preference_form'] = array(
         '#type' => 'fieldset',
         '#title' => t('Book Preferences/Application Status'),
         '#collapsible' => FALSE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'book_preference_f'
-        )
+        '#prefix' => '<div id="book_preference_form" style="width:50%;">',
+        '#suffix' => '</div>',
     );
-    $form['book_preference_f']['book_preference'] = array(
+    $form['book_preference_form']['book_preference'] = array(
         '#type' => 'item',
         '#markup' => $preference_html,
         '#title' => t('Book Preferences')
     );
     /*$chq_q=db_query("SELECT * FROM {textbook_companion_cheque} WHERE proposal_id = %d", $proposal_id);
     $chq_data=db_fetch_object($chq_q);*/
-    $query = db_select('textbook_companion_cheque');
-    $query->fields('textbook_companion_cheque');
-    $query->condition('proposal_id', $proposal_id);
-    $result = $query->execute();
-    $chq_data = $result->fetchObject();
+    // $query = db_select('textbook_companion_cheque');
+    // $query->fields('textbook_companion_cheque');
+    // $query->condition('proposal_id', $proposal_id);
+    // $result = $query->execute();
+    // $chq_data = $result->fetchObject();
     $form_html .= '<ul>';
-    if ($form_data->internship_form)
-    {
+    if ($form_data->internship_form) {
         $form_html .= '<li><strong>Internship Application </strong> Form Submitted</li>';
     } //$form_data->internship_form
-    else
-    {
+    else {
         $form_html .= '<li><strong>Internship Application </strong> Form Not Submitted </li>';
     }
-    if ($form_data->copyright_form)
-    {
+    if ($form_data->copyright_form) {
         $form_html .= '<li><strong>Copyright Application </strong> Form Submitted</li>';
     } //$form_data->copyright_form
-    else
-    {
+    else {
         $form_html .= '<li><strong>Copyright Application</strong> Form Not Submitted </li>';
     }
-    if ($form_data->undertaking_form)
-    {
+    if ($form_data->undertaking_form) {
         $form_html .= '<li><strong>Undertaking Application </strong> Form Submitted</li>';
     } //$form_data->undertaking_form
-    else
-    {
+    else {
         $form_html .= '<li><strong>Undertaking Application</strong> Form Not Submitted </li>';
     }
     $form_html .= '</ul>';
-    $form['book_preference_f']['formsubmit'] = array(
+    $form['book_preference_form']['application_status'] = array(
         '#type' => 'item',
         '#markup' => $form_html,
         '#title' => t('Application Form Status')
     );
-    $form['stu_cheque_details'] = array(
+    $form['student_cheque_details'] = array(
         '#type' => 'fieldset',
         '#title' => t('Student Cheque Details'),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'stu_cheque_details'
-        )
+        '#prefix' => '<div id="student_cheque_details" style="width:50%;">',
+        '#suffix' => '</div>',
     );
-    $form['tea_cheque_details'] = array(
+    $form['teacher_cheque_details'] = array(
         '#type' => 'fieldset',
         '#title' => t('Teacher Cheque Details'),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'tea_cheque_details'
-        )
+        '#prefix' => '<div id="teacher_cheque_details" style="width:50%;">',
+        '#suffix' => '</div>',
     );
     $form['perm_cheque_address'] = array(
         '#type' => 'fieldset',
         '#title' => t('Permanent Address'),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'perm_cheque_address'
-        )
+        '#prefix' => '<div id="perm_cheque_address" style="width:50%;">',
+        '#suffix' => '</div>',
     );
     $form['temp_cheque_address'] = array(
         '#type' => 'fieldset',
         '#title' => t('Temporary Address'),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'temp_cheque_address'
-        )
+        '#prefix' => '<div id="temp_cheque_address" style="width:50%;">',
+        '#suffix' => '</div>',
     );
     $form['cheque_delivery'] = array(
         '#type' => 'fieldset',
         '#title' => t('Cheque Delivery'),
         '#collapsible' => FALSE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'cheque_delivery'
-        )
+        '#prefix' => '<div id="cheque_delivery" style="width:50%;">',
+        '#suffix' => '</div>',
     );
     $form['commentf'] = array(
         '#type' => 'fieldset',
         '#title' => t('Remark'),
         '#collapsible' => FALSE,
         '#collapsed' => FALSE,
-        '#attributes' => array(
-            'id' => 'commentf'
-        )
+        '#prefix' => '<div id="comment" style="width:50%;">',
+        '#suffix' => '</div>',
     );
     /*$chq4_q = db_query("SELECT * FROM {textbook_companion_cheque} WHERE proposal_id=".$proposal_id);*/
-    $query = db_select('textbook_companion_cheque');
-    $query->fields('textbook_companion_cheque');
-    $query->condition('proposal_id', $proposal_id);
-    $chq4_q = $query->execute();
-    $chq1 = '';
-    $chq2 = '';
-    $chq3 = '';
-    $chq4 = '';
-    $chq5 = '';
-    $chq6 = '';
-    $chq7 = '';
-    $chq8 = '';
-    $chq9 = '';
-    $chq10 = '';
-    $chq11 = '';
-    $chq12 = '';
-    $chq13 = '';
-    $chq14 = '';
-    $chq15 = '';
-    $chq16 = '';
-    $chq17 = '';
-    if ($chqe = $chq4_q->fetchObject())
+    // $query = db_select('textbook_companion_cheque');
+    // $query->fields('textbook_companion_cheque');
+    // $query->condition('proposal_id', $proposal_id);
+    //$chq4_q = $query->execute();
+    $cheque_no = '';
+    $perm_address = '';
+    $cheque_amt = '';
+    $cheque_sent = '';
+    $cheque_bank = '';
+    $cheque_cleared = '';
+    $perm_address2 = '';
+    $perm_city = '';
+    $perm_state = '';
+    $perm_pincode = '';
+    $temp_address = '';
+    $temp_address2 = '';
+    $temp_city = '';
+    $temp_state = '';
+    $temp_pincode = '';
+    $comment = '';
+    $teacher_cheque_amt = '';
+    $teacher_cheque_no = '';
+    $teacher_cheque_bank = '';
+    if ($cheque_data)
     {
-        $chq1 = $chqe->cheque_no;
-        $chq2 = $chqe->address;
-        $chq3 = $chqe->cheque_amt;
-        $chq4 = $chqe->cheque_sent;
-        $chq5 = $chqe->cheque_cleared;
-        $chq6 = $chqe->perm_chq_address2;
-        $chq7 = $chqe->perm_city;
-        $chq8 = $chqe->perm_state;
-        $chq9 = $chqe->perm_pincode;
-        $chq10 = $chqe->temp_chq_address;
-        $chq11 = $chqe->temp_chq_address2;
-        $chq12 = $chqe->temp_city;
-        $chq13 = $chqe->temp_state;
-        $chq14 = $chqe->temp_pincode;
-        $chq15 = $chqe->commentf;
-        $chq16 = $chqe->t_cheque_amt;
-        $chq17 = $chqe->t_cheque_no;
-        $form['stu_cheque_details']['cheque_no'] = array(
+        $cheque_no = $cheque_data->cheque_no;
+        $perm_address = $cheque_data->address;
+        $cheque_amt = $cheque_data->cheque_amt;
+        $cheque_bank = $cheque_data->cheque_bank;
+        $cheque_sent = $cheque_data->cheque_sent;
+        $cheque_cleared = $cheque_data->cheque_cleared;
+        $perm_address2 = $cheque_data->perm_chq_address2;
+        $perm_city = $cheque_data->perm_city;
+        $perm_state = $cheque_data->perm_state;
+        $perm_pincode = $cheque_data->perm_pincode;
+        $temp_address = $cheque_data->temp_chq_address;
+        $temp_address2 = $cheque_data->temp_chq_address2;
+        $temp_city = $cheque_data->temp_city;
+        $temp_state = $cheque_data->temp_state;
+        $temp_pincode = $cheque_data->temp_pincode;
+        $comment = $cheque_data->commentf;
+        $teacher_cheque_amt = $cheque_data->t_cheque_amt;
+        $teacher_cheque_no = $cheque_data->t_cheque_no;
+        $teacher_cheque_bank = $cheque_data->t_cheque_bank;
+        $form['student_cheque_details']['cheque_no'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq1,
+            '#default_value' => $cheque_no,
             '#title' => t('Cheque No'),
             '#size' => 54
         );
-        $form['tea_cheque_details']['cheque_no_t'] = array(
+        $form['student_cheque_details']['cheque_bank'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq17,
+            '#default_value' => $cheque_bank,
+            '#title' => t('Bank Name'),
+            '#size' => 54
+        );
+        $form['teacher_cheque_details']['teacher_cheque_no'] = array(
+            '#type' => 'textfield',
+            '#default_value' => $teacher_cheque_no,
             '#title' => t('Cheque No'),
+            '#size' => 54
+        );
+        $form['teacher_cheque_details']['teacher_cheque_bank'] = array(
+            '#type' => 'textfield',
+            '#default_value' => $teacher_cheque_bank,
+            '#title' => t('Bank Name'),
             '#size' => 54
         );
         $form['perm_cheque_address']['chq_address'] = array(
             '#type' => 'textarea',
-            '#default_value' => $chq2,
+            '#default_value' => $perm_address,
             '#title' => t('Address Street 1')
         );
         $form['perm_cheque_address']['chq_address']['#attributes']['readonly'] = 'readonly';
         $form['perm_cheque_address']['perm_city'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq7,
+            '#default_value' => $perm_city,
             '#title' => t('City'),
             '#size' => 35
         );
         $form['perm_cheque_address']['perm_city']['#attributes']['readonly'] = 'readonly';
         $form['perm_cheque_address']['perm_state'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq8,
+            '#default_value' => $perm_state,
             '#title' => t('State'),
             '#size' => 35
         );
         $form['perm_cheque_address']['perm_state']['#attributes']['readonly'] = 'readonly';
         $form['perm_cheque_address']['perm_pincode'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq9,
-            '#title' => t('Zip code'),
+            '#default_value' => $perm_pincode,
+            '#title' => t('PIN code'),
             '#size' => 35
         );
         $form['perm_cheque_address']['perm_pincode']['#attributes']['readonly'] = 'readonly';
-        $form['stu_cheque_details']['cheq_amt'] = array(
+        $form['student_cheque_details']['cheq_amt'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq3,
+            '#default_value' => $cheque_amt,
             '#title' => t('Cheque Amount'),
             '#size' => 54
         );
-        $form['tea_cheque_details']['cheq_amt_t'] = array(
+        $form['teacher_cheque_details']['cheq_amt'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq17,
+            '#default_value' => $teacher_cheque_amt,
             '#title' => t('Cheque Amount'),
             '#size' => 54
         );
         $form['temp_cheque_address']['temp_chq_address'] = array(
             '#type' => 'textarea',
-            '#default_value' => $chq10,
+            '#default_value' => $temp_address,
             '#title' => t('Address Street 1')
         );
         $form['temp_cheque_address']['temp_chq_address']['#attributes']['readonly'] = 'readonly';
         $form['temp_cheque_address']['temp_city'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq12,
+            '#default_value' => $temp_city,
             '#title' => t('City'),
             '#size' => 35
         );
         $form['temp_cheque_address']['temp_city']['#attributes']['readonly'] = 'readonly';
         $form['temp_cheque_address']['temp_state'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq13,
+            '#default_value' => $temp_state,
             '#title' => t('State'),
             '#size' => 35
         );
         $form['temp_cheque_address']['temp_state']['#attributes']['readonly'] = 'readonly';
         $form['temp_cheque_address']['temp_pincode'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq14,
-            '#title' => t('Zipcode'),
+            '#default_value' => $temp_pincode,
+            '#title' => t('PIN code'),
             '#size' => 35
         );
         $form['temp_cheque_address']['temp_pincode']['#attributes']['readonly'] = 'readonly';
     } //$chqe = $chq4_q->fetchObject()
-    else
-    {
-        $form['stu_cheque_details']['cheque_no'] = array(
+    else {
+        $form['student_cheque_details']['cheque_no'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq1,
-            '#title' => t('Cheque No')
+            '#default_value' => $cheque_no,
+            '#title' => t('Cheque No'),
+            '#size' => 54
         );
-        $form['tea_cheque_details']['cheque_no_t'] = array(
+        $form['student_cheque_details']['cheque_bank'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq16,
-            '#title' => t('Cheque No')
+            '#default_value' => $cheque_bank,
+            '#title' => t('Bank Name'),
+            '#size' => 54
+        );
+        $form['teacher_cheque_details']['teacher_cheque_no'] = array(
+            '#type' => 'textfield',
+            '#default_value' => $teacher_cheque_no,
+            '#title' => t('Cheque No'),
+            '#size' => 54
+        );
+        $form['teacher_cheque_details']['teacher_cheque_bank'] = array(
+            '#type' => 'textfield',
+            '#default_value' => $teacher_cheque_bank,
+            '#title' => t('Bank Name'),
+            '#size' => 54
         );
         $form['perm_cheque_address']['chq_address'] = array(
             '#type' => 'textarea',
-            '#default_value' => $chq2,
+            '#default_value' => $perm_address,
             '#title' => t('Address Street 1')
         );
         $form['perm_cheque_address']['perm_city'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq7,
+            '#default_value' => $perm_city,
             '#title' => t('City'),
             '#size' => 35
         );
         $form['perm_cheque_address']['perm_state'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq8,
+            '#default_value' => $perm_state,
             '#title' => t('State'),
             '#size' => 35
         );
         $form['perm_cheque_address']['perm_pincode'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq9,
-            '#title' => t('Zip code'),
+            '#default_value' => $perm_pincode,
+            '#title' => t('PIN code'),
             '#size' => 35
         );
-        $form['perm_cheque_address']['same_address'] = array(
-            '#type' => 'checkbox',
-            '#title' => t('Same As Permanent Address'),
-            '#attributes' => array(
-                'onclick' => 'copy_address()'
-            )
-        );
-        $form['stu_cheque_details']['cheq_amt'] = array(
+        $form['student_cheque_details']['cheq_amt'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq3,
+            '#default_value' => $cheque_amt,
             '#title' => t('Cheque Amount')
         );
-        $form['tea_cheque_details']['cheq_amt'] = array(
+        $form['teacher_cheque_details']['cheq_amt'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq17,
+            '#default_value' => $teacher_cheque_amt,
             '#title' => t('Cheque Amount')
         );
         $form['temp_cheque_address']['temp_chq_address'] = array(
             '#type' => 'textarea',
-            '#default_value' => $chq10,
+            '#default_value' => $temp_address,
             '#title' => t('Address Street 1')
         );
         $form['temp_cheque_address']['temp_city'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq12,
+            '#default_value' => $temp_city,
             '#title' => t('City'),
             '#size' => 35
         );
         $form['temp_cheque_address']['temp_state'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq13,
+            '#default_value' => $temp_state,
             '#title' => t('State'),
             '#size' => 35
         );
         $form['temp_cheque_address']['temp_pincode'] = array(
             '#type' => 'textfield',
-            '#default_value' => $chq14,
-            '#title' => t('Zip code'),
+            '#default_value' => $temp_pincode,
+            '#title' => t('PIN code'),
             '#size' => 35
-        );
-        $form['temp_cheque_address']['same_address'] = array(
-            '#type' => 'checkbox',
-            '#title' => t('Same As Permanent Address')
         );
         $form['temp_cheque_address']['same_address'] = array(
             '#type' => 'checkbox',
@@ -787,7 +791,7 @@ function cheque_status_form($form_state, $proposal_id) {
     $form['cheque_delivery']['cheque_sent'] = array(
         '#type' => 'checkbox',
         '#title' => t('Cheque Sent'),
-        '#default_value' => $chq4,
+        '#default_value' => $cheque_sent,
         '#description' => t('Check if the Cheque has been sent to the user.'),
         '#attributes' => array(
             'id' => 'cheque_sent'
@@ -796,7 +800,7 @@ function cheque_status_form($form_state, $proposal_id) {
     $form['cheque_delivery']['cheque_cleared'] = array(
         '#type' => 'checkbox',
         '#title' => t('Cheque Cleared'),
-        '#default_value' => $chq5,
+        '#default_value' => $cheque_cleared,
         '#description' => t('Check if the Cheque has been <strong>Realised</strong> to the User Account.'),
         '#attributes' => array(
             'id' => 'cheque_cleared'
@@ -808,31 +812,15 @@ function cheque_status_form($form_state, $proposal_id) {
         '#attributes' => array(
             'id' => 'comment'
         ),
-        '#default_value' => $chq15
+        '#default_value' => $comment
     );
-    $form['proposal_id'] = array(
-        '#type' => 'hidden',
-        '#value' => $proposal_id
-    );
-    /*$preference1_p = db_query("SELECT * FROM {textbook_companion_paper} WHERE proposal_id = %d ORDER BY id ASC", $proposal_id); */
-    $query = db_select('textbook_companion_paper');
-    $query->fields('textbook_companion_paper');
-    $query->condition('proposal_id', $proposal_id);
-    $query->orderBy('id', 'ASC');
-    $preference1_p = $query->execute();
-    if (!($proposal_data1 = $preference1_p->fetchObject()))
-    {
-        drupal_set_message(t('Invalid proposal selected. Please try again.'), 'error');
-        drupal_goto('manage_proposal');
-        return;
-    } //!($proposal_data1 = $preference1_p->fetchObject())
     $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Submit')
     );
     $form['cancel'] = array(
         '#type' => 'markup',
-        '#value' => l(t('Cancel'), 'manage_proposal/all')
+        '#value' => l(t('Cancel'), 'accounting/manage_forms/tbc')
     );
     return $form;
 }
@@ -868,31 +856,33 @@ function cheque_status_form_submit($form, &$form_state)
     $proposal_id = arg(2);
     $query = db_update('textbook_companion_cheque');
     $query->fields(array(
-        'cheque_no' => $form_state['values']['cheque_no'],
-        'cheque_amt' => $form_state['values']['cheq_amt'],
-        'alt_mobno' => $form_state['values']['mobileno2'],
-        'address' => $form_state['values']['chq_address'],
-        'perm_city' => $form_state['values']['perm_city'],
-        'perm_state' => $form_state['values']['perm_state'],
-        'perm_pincode' => $form_state['values']['perm_pincode'],
-        'temp_chq_address' => $form_state['values']['temp_chq_address'],
-        'temp_city' => $form_state['values']['temp_city'],
-        'temp_state' => $form_state['values']['temp_state'],
-        'temp_pincode' => $form_state['values']['temp_pincode'],
-        'commentf' => $form_state['values']['comment_cheque'],
-        't_cheque_no' => $form_state['values']['cheque_no_t'],
-        't_cheque_amt' => $form_state['values']['cheq_amt_t']
+        'cheque_no' => $form_state['values']['student_cheque_details']['cheque_no'],
+        'cheque_amt' => $form_state['values']['student_cheque_details']['cheque_amt'],
+        'cheque_bank' => $form_state['values']['student_cheque_details']['cheque_bank'],
+        'alt_mobno' => $form_state['values']['candidate_details']['mobileno2'],
+        'address' => $form_state['values']['perm_cheque_address']['chq_address'],
+        'perm_city' => $form_state['values']['perm_cheque_address']['perm_city'],
+        'perm_state' => $form_state['values']['perm_cheque_address']['perm_state'],
+        'perm_pincode' => $form_state['values']['perm_cheque_address']['perm_pincode'],
+        'temp_chq_address' => $form_state['values']['temp_cheque_address']['temp_chq_address'],
+        'temp_city' => $form_state['values']['temp_cheque_address']['temp_city'],
+        'temp_state' => $form_state['values']['temp_cheque_address']['temp_state'],
+        'temp_pincode' => $form_state['values']['temp_cheque_address']['temp_pincode'],
+        'commentf' => $form_state['values']['temp_cheque_address']['comment_cheque'],
+        't_cheque_no' => $form_state['values']['teacher_cheque_details']['teacher_cheque_no'],
+        't_cheque_amt' => $form_state['values']['teacher_cheque_details']['teacher_cheque_amt'],
+        't_cheque_bank' => $form_state['values']['teacher_cheque_details']['teacher_cheque_bank'],
     ));
     $query->condition('proposal_id', $proposal_id);
     $num_updated = $query->execute();
-    if ($form_state['values']['cheque_sent'] == 1)
+    if ($form_state['values']['cheque_delivery']['cheque_sent'] == 1)
     {
         /* sending email */
         /*$query ="UPDATE {textbook_companion_cheque} SET cheque_sent = ".$form_state['values']['cheque_sent']." WHERE proposal_id = ".$proposal_id;
         db_query($query);*/
         $query = db_update('textbook_companion_cheque');
         $query->fields(array(
-            'cheque_sent' => $form_state[values][cheque_sent]
+            'cheque_sent' => $form_state['values']['cheque_delivery']['cheque_sent']
         ));
         $query->condition('proposal_id', $proposal_id);
         $num_updated = $query->execute();
@@ -904,18 +894,17 @@ function cheque_status_form_submit($form, &$form_state)
             drupal_set_message(t('Error sending email message.'), 'error');
         drupal_set_message(t('Cheque for Book proposal has been Sent. User has been notified.'), 'status');
     } //$form_state['values']['cheque_sent'] == 1
-    if ($form_state['values']['cheque_cleared'] == 1)
+    if ($form_state['values']['cheque_delivery']['cheque_cleared'] == 1)
     {
         /*$query ="UPDATE {textbook_companion_cheque} SET cheque_cleared = ".$form_state['values']['cheque_cleared']." WHERE proposal_id = ".$proposal_id;
         db_query($query);*/
         $query = db_update('textbook_companion_cheque');
         $query->fields(array(
-            'cheque_cleared' => $form_state[values][cheque_cleared]
+            'cheque_cleared' => $form_state['values']['cheque_delivery']['cheque_cleared']
         ));
         $query->condition('proposal_id', $proposal_id);
         $num_updated = $query->execute();
         $curtime = MySQL_NOW();
-        echo $curtime;
         drupal_set_message(t('Cheque Has Been Debited into User Account.'), 'status');
         /*$queryc ="UPDATE {textbook_companion_cheque} SET cheque_dispatch_date = NOW() WHERE proposal_id = ".$form_state['values']['proposal_id']."";
         db_query($queryc);*/
@@ -929,8 +918,7 @@ function cheque_status_form_submit($form, &$form_state)
     /************************************************
     Check For the Remark
     ************************************************/
-    if ($form_state['values']['comment_cheque'])
-    {
+    if ($form_state['values']['comment_cheque']) {
         /* sending email */
         $book_user = user_load($proposal_data->uid);
         $param['proposal_completed']['proposal_id'] = $proposal_id;
@@ -940,8 +928,7 @@ function cheque_status_form_submit($form, &$form_state)
             drupal_set_message(t('Error sending email message.'), 'error');
         drupal_set_message(t('Remark Updated. User has been notified'), 'status');
     } //$form_state['values']['comment_cheque']
-    else
-    {
+    else {
         if (!drupal_mail('textbook_companion', 'remark_not', $email_to, language_default(), $param, variable_get('textbook_companion_from_email', NULL), TRUE))
             drupal_set_message(t('Error sending email message.'), 'error');
         drupal_set_message(t('No Remarks. User has been notified.'), 'status');
