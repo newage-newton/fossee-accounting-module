@@ -54,15 +54,67 @@ function accounting_menu() {
   $items['accounting/manage_forms/tbc'] = array(
     'title' => 'Manage Textbook Companion Forms',
     'description' => 'Manage textbook companion forms sent by post.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'accounting_manage_tbc_form'
-    ),
+    'page callback' => 'manage_forms_tbc',
     'access arguments' => array(
       'accounting manage forms'
     ),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'manage_tbc.inc'
+    'file' => 'manage_cheque_tbc.inc'
+  );
+
+  $items['accounting/manage_forms/tbc/user'] = array(
+    'title' => 'Application Forms',
+    'description' => 'Details of Appliction form sent by post.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'manage_forms_tbc_user_form'
+    ),
+    'access arguments' => array(
+      'accounting manage forms user'
+    ),
+    //'type' => MENU_LOCAL_TASK,
+    'file' => 'manage_cheque_tbc.inc'
+  );
+
+  $items['accounting/manage_forms/tbc/paper_submission'] = array(
+    'title' => 'Application Submission',
+    'description' => 'Application Submission',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'paper_submission_form'
+    ),
+    'access arguments' => array(
+      'accounting manage forms'
+    ),
+    'type' => MENU_CALLBACK,
+    'file' => 'manage_cheque_tbc.inc'
+  );
+
+  $items['accounting/cheque_contact/status'] = array(
+    'title' => 'Cheque Status',
+    'description' => 'Cheque Status',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'cheque_status_form'
+    ),
+    'access' => 'user_is_logged_in',
+    'access arguments' => array(
+      'accounting manage forms'
+    ),
+    'file' => 'manage_cheque_tbc.inc'
+  );
+
+  $items['accounting/contact_details/user'] = array(
+    'title' => 'Update Contact Details',
+    'description' => 'contact details for cheque',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'contact_details_form'
+    ),
+    'access arguments' => array(
+      'update contact details'
+    ),
+    'file' => 'manage_cheque_tbc.inc'
   );
 
   return $items;
@@ -76,7 +128,17 @@ function accounting_permission() {
     ),
 
     'administer accounting' => array(
-      'title' => t('administer accounting'), 
+      'title' => t('administer accounting'),
+      'restrict access' => TRUE,
+    ),
+
+    'accounting manage forms user' => array(
+      'title' => t('accounting manage forms user'),
+      'restrict access' => TRUE,
+    ),
+
+    'update contact details' => array(
+      'title' => t('update contact details'),
       'restrict access' => TRUE,
     ),
   );

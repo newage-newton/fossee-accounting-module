@@ -1,8 +1,6 @@
 <?php
 
 function accounting_lm_list_forms() {
-  global $user;
-  $query = db_query('SELECT * FROM {lab_migration_form_post}');
 
   $header_row = array('Date', 'Username', 'Lab Title', 'Post Service', 'Tracking Details', 'Status', 'Cheque Details');
 
@@ -38,7 +36,6 @@ function accounting_lm_list_forms() {
                 $cheque_details,
               );
   }
-
   return theme('table', array('header' => $header_row, 'rows' => $rows));
 }
 
@@ -106,9 +103,9 @@ function accounting_manage_lm_form($form, &$form_state) {
       '#type' => 'radios',
       '#options' => array(0 => 'Not Received', 1 => 'Received'),
       '#default_value' => $query->status,
-      // 'ajax' => array(
-      //   'callback' => 'status_modify_ajax',
-      // ),
+      'ajax' => array(
+        'callback' => 'status_modify_ajax',
+      ),
     );
 
     $form['contact_details'] = array(
@@ -195,7 +192,6 @@ function status_modify_ajax($form, &$form_state) {
       ))
       ->condition('id', $id)
       ->execute();
-
   drupal_goto('accounting/manage_forms/lm/form/' . $id);
 }
 
