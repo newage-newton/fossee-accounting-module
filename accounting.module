@@ -19,7 +19,7 @@ function accounting_menu() {
   $items['accounting/manage_forms'] = array(
     'title' => 'Manage Cheque Proposals',
     'description' => 'Manage cheque proposal.',
-    'page callback' => 'accounting_list_forms',
+    'page callback' => 'accounting_lm_list_forms',
     'access arguments' => array(
       'accounting manage forms'
     ),
@@ -30,13 +30,24 @@ function accounting_menu() {
     'title' => 'Manage Lab Migration Forms',
     'description' => 'Manage lab migration forms sent by post.',
     'page callback' => 'accounting_lm_list_forms',
-    // 'page arguments' => array(
-    //   'accounting_manage_lm_form'
-    // ),
     'access arguments' => array(
       'accounting manage forms',
     ),
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'manage_lm.inc',
+  );
+
+  $items['accounting/manage_forms/lm/form'] = array(
+    'title' => 'Manage Cheque for User', 
+    'description' => 'Manage cheques to be dispatched to the user.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'accounting_manage_lm_form',
+    ),
+    'access arguments' => array(
+      'accounting manage forms',
+    ),
+    'type' => MENU_NORMAL_ITEM,
     'file' => 'manage_lm.inc',
   );
 
