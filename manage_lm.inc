@@ -1,6 +1,8 @@
 <?php
 
 function accounting_lm_list_forms() {
+  global $user;
+  $query = db_query('SELECT * FROM {lab_migration_form_post}');
 
   $header_row = array('Date', 'Username', 'Lab Title', 'Post Service', 'Tracking Details', 'Status', 'Cheque Details');
 
@@ -36,13 +38,17 @@ function accounting_lm_list_forms() {
                 $cheque_details,
               );
   }
+
   return theme('table', array('header' => $header_row, 'rows' => $rows));
 }
 
 function accounting_manage_lm_form($form, &$form_state) {
   $id = arg(4);
   $query = db_query("SELECT * FROM {lab_migration_form_post} WHERE id = (:id)", array(':id' => $id)) -> fetchObject();
-
+  $form['form_table_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $id,
+  );
   if(!is_null($query)) {
     $proposal_data = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = (:pid)", array(':pid' => $query->proposal_id))->fetchObject();
     $user_data = db_query("SELECT * FROM {users} WHERE uid = (:uid)", array(':uid' => $query->user_id))->fetchObject();
@@ -103,7 +109,7 @@ function accounting_manage_lm_form($form, &$form_state) {
       '#type' => 'radios',
       '#options' => array(0 => 'Not Received', 1 => 'Received'),
       '#default_value' => $query->status,
-      'ajax' => array(
+      '#ajax' => array(
         'callback' => 'status_modify_ajax',
       ),
     );
@@ -184,15 +190,21 @@ function accounting_manage_lm_form($form, &$form_state) {
 }
 
 function status_modify_ajax($form, &$form_state) {
-  $id = arg(4);
+  $id = $form_state['values']['form_table_id'];
   if($form_state['values']['status'] == 1)
     db_update('lab_migration_form_post')
       ->fields(array(
-        'status' == 1,
+        'status' => 1,
       ))
       ->condition('id', $id)
       ->execute();
-  drupal_goto('accounting/manage_forms/lm/form/' . $id);
+  else
+    db_update('lab_migration_form_post')
+      ->fields(array(
+        'status' => 0,
+      ))
+      ->condition('id', $id)
+      ->execute();
 }
 
 function accounting_manage_lm_form_validate($form, &$form_state) {
