@@ -124,6 +124,9 @@ function accounting_manage_lm_form($form, &$form_state) {
       '#type' => 'item',
       '#title' => t('Cheque Status'),
       '#markup' => $cheque_status,
+      '#ajax' => array(
+        'callback' => 'status_modify_ajax'
+      ),
     );
 
     $form['cheque'] = array(
@@ -138,8 +141,8 @@ function accounting_manage_lm_form($form, &$form_state) {
     );
 
     $form['cheque']['cheque_date'] = array(
-      '#type' => 'date',
-      '#title' => t('Enter date on cheque'),
+      '#type' => 'textfield',
+      '#title' => t('Enter date on cheque (DD-MM-YYYY)'),
     );
 
      $form['cheque']['cheque_amount'] = array(
@@ -155,8 +158,8 @@ function accounting_manage_lm_form($form, &$form_state) {
     if($cheque_data != "") {
       $form['cheque']['cheque_number']['#default_value'] = $cheque_data->cheque_number;
       $form['cheque']['cheque_number']['#disabled'] = TRUE;
-      $form['cheque']['cheque_date']['#default_value'] = $cheque_data->cheque_date;
-      $form['cheque']['cheque_number']['#disabled'] = TRUE;
+      $form['cheque']['cheque_date']['#default_value'] = date('d-m-Y',strtotime($cheque_data->cheque_date));
+      $form['cheque']['cheque_date']['#disabled'] = TRUE;
       $form['cheque']['cheque_amount']['#default_value'] = $cheque_data->cheque_amount;
       $form['cheque']['cheque_amount']['#disabled'] = TRUE;
       $form['cheque']['cheque_bank']['#default_value'] = $cheque_data->cheque_bank;
@@ -167,6 +170,7 @@ function accounting_manage_lm_form($form, &$form_state) {
       '#type' => 'button',
       '#value' => t('Edit Cheque Details'),
       '#name' => 'edit_cheque',
+      '#validate' => TRUE,
       '#ajax' => array(
         'wrapper' => 'edit-cheque-details',
       ),
@@ -198,7 +202,7 @@ function status_modify_ajax($form, &$form_state) {
       ))
       ->condition('id', $id)
       ->execute();
-  else
+  else 
     db_update('lab_migration_form_post')
       ->fields(array(
         'status' => 0,
@@ -208,11 +212,14 @@ function status_modify_ajax($form, &$form_state) {
 }
 
 function accounting_manage_lm_form_validate($form, &$form_state) {
-  if(!filter_var($form_state['values']['cheque_number'], FILTER_VALIDATE_INT))
-    form_set_error('cheque_number', t('Cheque number should only contain digits 0-9.'));
-
-  if(!filter_var($form_state['values']['cheque_amount'], FILTER_VALIDATE_INT))
-    form_set_error('cheque_amount', t('Cheque amount should only contain digits 0-9.'));
+  if($form_state['complete form']['cheque']['cheque_number']['#disabled'] == FALSE) {
+    if(!filter_var($form_state['values']['cheque_number'], FILTER_VALIDATE_INT))
+      form_set_error('cheque_number', t('Cheque number should only contain digits 0-9.'));
+  }
+  if($form_state['complete form']['cheque']['cheque_amount']['#disabled'] == FALSE) {
+    if(!filter_var($form_state['values']['cheque_amount'], FILTER_VALIDATE_INT))
+      form_set_error('cheque_amount', t('Cheque amount should only contain digits 0-9.'));
+  }
 }
 
 function accounting_manage_lm_form_submit($form, &$form_state) {
@@ -231,7 +238,7 @@ function accounting_manage_lm_form_submit($form, &$form_state) {
         'form_id' => $id,
         'cheque_number' => $form_state['values']['cheque_number'],
         'cheque_amount' => $form_state['values']['cheque_amount'],
-        'cheque_date' => date('Y/m/d', strtotime($form_state['values']['cheque_date']['day'] . '-' . $form_state['values']['cheque_date']['month']. '-' . $form_state['values']['cheque_date']['year'])),
+        'cheque_date' => date('Y/m/d', strtotime($form_state['values']['cheque_date'])),
         'cheque_bank' => $form_state['values']['cheque_bank'],
         'cheque_status' => 1,
       ))
@@ -242,7 +249,7 @@ function accounting_manage_lm_form_submit($form, &$form_state) {
       ->fields(array(
         'cheque_number' => $form_state['values']['cheque_number'],
         'cheque_amount' => $form_state['values']['cheque_amount'],
-        'cheque_date' => date('Y/m/d', strtotime($form_state['values']['cheque_date']['day'] . '-' . $form_state['values']['cheque_date']['month']. '-' . $form_state['values']['cheque_date']['year'])),
+        'cheque_date' => date('Y/m/d', strtotime($form_state['values']['cheque_date'])),
         'cheque_bank' => $form_state['values']['cheque_bank'],
         'cheque_status' => 1,
       ))
